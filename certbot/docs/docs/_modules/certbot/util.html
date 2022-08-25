@@ -1,0 +1,785 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>certbot.util &#8212; Certbot 1.26.0.dev0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for certbot.util</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Utilities for all Certbot.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">atexit</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">errno</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">platform</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">IO</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Set</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">import</span> <span class="nn">configargparse</span>
+
+<span class="kn">from</span> <span class="nn">certbot</span> <span class="kn">import</span> <span class="n">errors</span>
+<span class="kn">from</span> <span class="nn">certbot._internal</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">certbot._internal</span> <span class="kn">import</span> <span class="n">lock</span>
+<span class="kn">from</span> <span class="nn">certbot.compat</span> <span class="kn">import</span> <span class="n">filesystem</span>
+<span class="kn">from</span> <span class="nn">certbot.compat</span> <span class="kn">import</span> <span class="n">os</span>
+
+<span class="n">_USE_DISTRO</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;linux&#39;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">_USE_DISTRO</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">distro</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">distutils.version</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">Key</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;Key&quot;</span><span class="p">,</span> <span class="s2">&quot;file pem&quot;</span><span class="p">)</span>
+<span class="c1"># Note: form is the type of data, &quot;pem&quot; or &quot;der&quot;</span>
+<span class="n">CSR</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;CSR&quot;</span><span class="p">,</span> <span class="s2">&quot;file data form&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># ANSI SGR escape codes</span>
+<span class="c1"># Formats text as bold or with increased intensity</span>
+<span class="n">ANSI_SGR_BOLD</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\033</span><span class="s1">[1m&#39;</span>
+<span class="c1"># Colors text red</span>
+<span class="n">ANSI_SGR_RED</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[31m&quot;</span>
+<span class="c1"># Resets output format</span>
+<span class="n">ANSI_SGR_RESET</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[0m&quot;</span>
+
+
+<span class="n">PERM_ERR_FMT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">((</span>
+    <span class="s2">&quot;The following error was encountered:&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Either run as root, or set --config-dir, &quot;</span>
+    <span class="s2">&quot;--work-dir, and --logs-dir to writeable paths.&quot;</span><span class="p">))</span>
+
+
+<span class="c1"># Stores importing process ID to be used by atexit_register()</span>
+<span class="n">_INITIAL_PID</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span>
+<span class="c1"># Maps paths to locked directories to their lock object. All locks in</span>
+<span class="c1"># the dict are attempted to be cleaned up at program exit. If the</span>
+<span class="c1"># program exits before the lock is cleaned up, it is automatically</span>
+<span class="c1"># released, but the file isn&#39;t deleted.</span>
+<span class="n">_LOCKS</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">lock</span><span class="o">.</span><span class="n">LockFile</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">_VERSION_COMPONENT_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(\d+ | [a-z]+ | \.)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">)</span>
+
+<div class="viewcode-block" id="env_no_snap_for_external_calls"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.env_no_snap_for_external_calls">[docs]</a><span class="k">def</span> <span class="nf">env_no_snap_for_external_calls</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    When Certbot is run inside a Snap, certain environment variables</span>
+<span class="sd">    are modified. But Certbot sometimes calls out to external programs,</span>
+<span class="sd">    since it uses classic confinement. When we do that, we must modify</span>
+<span class="sd">    the env to remove our modifications so it will use the system&#39;s</span>
+<span class="sd">    libraries, since they may be incompatible with the versions of</span>
+<span class="sd">    libraries included in the Snap. For example, apachectl, Nginx, and</span>
+<span class="sd">    anything run from inside a hook should call this function and pass</span>
+<span class="sd">    the results into the ``env`` argument of ``subprocess.Popen``.</span>
+
+<span class="sd">    :returns: A modified copy of os.environ ready to pass to Popen</span>
+<span class="sd">    :rtype: dict</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="c1"># Avoid accidentally modifying env</span>
+    <span class="k">if</span> <span class="s1">&#39;SNAP&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">env</span> <span class="ow">or</span> <span class="s1">&#39;CERTBOT_SNAPPED&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">env</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">env</span>
+    <span class="k">for</span> <span class="n">path_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;PATH&#39;</span><span class="p">,</span> <span class="s1">&#39;LD_LIBRARY_PATH&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">path_name</span> <span class="ow">in</span> <span class="n">env</span><span class="p">:</span>
+            <span class="n">env</span><span class="p">[</span><span class="n">path_name</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">env</span><span class="p">[</span><span class="n">path_name</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">env</span><span class="p">[</span><span class="s1">&#39;SNAP&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">env</span></div>
+
+
+<div class="viewcode-block" id="run_script"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.run_script">[docs]</a><span class="k">def</span> <span class="nf">run_script</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">log</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span><span class="o">=</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Run the script with the given params.</span>
+
+<span class="sd">    :param list params: List of parameters to pass to subprocess.run</span>
+<span class="sd">    :param callable log: Logger method to use for errors</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">params</span><span class="p">,</span>
+                              <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                              <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                              <span class="n">universal_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                              <span class="n">env</span><span class="o">=</span><span class="n">env_no_snap_for_external_calls</span><span class="p">())</span>
+
+    <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Unable to run the command: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">log</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">errors</span><span class="o">.</span><span class="n">SubprocessError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">proc</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Error while running </span><span class="si">%s</span><span class="s2">.</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">params</span><span class="p">),</span> <span class="n">proc</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">proc</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="c1"># Enter recovery routine...</span>
+        <span class="n">log</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">errors</span><span class="o">.</span><span class="n">SubprocessError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">proc</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">proc</span><span class="o">.</span><span class="n">stderr</span></div>
+
+
+<div class="viewcode-block" id="exe_exists"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.exe_exists">[docs]</a><span class="k">def</span> <span class="nf">exe_exists</span><span class="p">(</span><span class="n">exe</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Determine whether path/name refers to an executable.</span>
+
+<span class="sd">    :param str exe: Executable path or name</span>
+
+<span class="sd">    :returns: If exe is a valid executable</span>
+<span class="sd">    :rtype: bool</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">exe</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">is_executable</span><span class="p">(</span><span class="n">exe</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PATH&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">pathsep</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">is_executable</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">exe</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="lock_dir_until_exit"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.lock_dir_until_exit">[docs]</a><span class="k">def</span> <span class="nf">lock_dir_until_exit</span><span class="p">(</span><span class="n">dir_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Lock the directory at dir_path until program exit.</span>
+
+<span class="sd">    :param str dir_path: path to directory</span>
+
+<span class="sd">    :raises errors.LockError: if the lock is held by another process</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_LOCKS</span><span class="p">:</span>  <span class="c1"># this is the first lock to be released at exit</span>
+        <span class="n">atexit_register</span><span class="p">(</span><span class="n">_release_locks</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dir_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_LOCKS</span><span class="p">:</span>
+        <span class="n">_LOCKS</span><span class="p">[</span><span class="n">dir_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">lock</span><span class="o">.</span><span class="n">lock_dir</span><span class="p">(</span><span class="n">dir_path</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_release_locks</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">dir_lock</span> <span class="ow">in</span> <span class="n">_LOCKS</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dir_lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>  <span class="c1"># pylint: disable=bare-except</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Exception occurred releasing lock: </span><span class="si">{0!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dir_lock</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">_LOCKS</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="set_up_core_dir"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.set_up_core_dir">[docs]</a><span class="k">def</span> <span class="nf">set_up_core_dir</span><span class="p">(</span><span class="n">directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Ensure directory exists with proper permissions and is locked.</span>
+
+<span class="sd">    :param str directory: Path to a directory.</span>
+<span class="sd">    :param int mode: Directory mode.</span>
+<span class="sd">    :param bool strict: require directory to be owned by current user</span>
+
+<span class="sd">    :raises .errors.LockError: if the directory cannot be locked</span>
+<span class="sd">    :raises .errors.Error: if the directory cannot be made or verified</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">make_or_verify_dir</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">strict</span><span class="p">)</span>
+        <span class="n">lock_dir_until_exit</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Exception was:&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">errors</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span><span class="n">PERM_ERR_FMT</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">error</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="make_or_verify_dir"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.make_or_verify_dir">[docs]</a><span class="k">def</span> <span class="nf">make_or_verify_dir</span><span class="p">(</span><span class="n">directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mo">0o755</span><span class="p">,</span> <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Make sure directory exists with proper permissions.</span>
+
+<span class="sd">    :param str directory: Path to a directory.</span>
+<span class="sd">    :param int mode: Directory mode.</span>
+<span class="sd">    :param bool strict: require directory to be owned by current user</span>
+
+<span class="sd">    :raises .errors.Error: if a directory already exists,</span>
+<span class="sd">        but has wrong permissions or owner</span>
+
+<span class="sd">    :raises OSError: if invalid or inaccessible file names and</span>
+<span class="sd">        paths, or other arguments that have the correct type,</span>
+<span class="sd">        but are not accepted by the operating system.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">filesystem</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">exception</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">exception</span><span class="o">.</span><span class="n">errno</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">EEXIST</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">strict</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">check_permissions</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">errors</span><span class="o">.</span><span class="n">Error</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> exists, but it should be owned by current user with&quot;</span>
+                    <span class="s2">&quot; permissions </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="nb">oct</span><span class="p">(</span><span class="n">mode</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="safe_open"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.safe_open">[docs]</a><span class="k">def</span> <span class="nf">safe_open</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">chmod</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IO</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Safely open a file.</span>
+
+<span class="sd">    :param str path: Path to a file.</span>
+<span class="sd">    :param str mode: Same os `mode` for `open`.</span>
+<span class="sd">    :param int chmod: Same as `mode` for `filesystem.open`, uses Python defaults</span>
+<span class="sd">        if ``None``.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">open_args</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[()],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="k">if</span> <span class="n">chmod</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">open_args</span> <span class="o">=</span> <span class="p">(</span><span class="n">chmod</span><span class="p">,)</span>
+    <span class="n">fdopen_args</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[()],</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">fd</span> <span class="o">=</span> <span class="n">filesystem</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">O_CREAT</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">O_EXCL</span> <span class="o">|</span> <span class="n">os</span><span class="o">.</span><span class="n">O_RDWR</span><span class="p">,</span> <span class="o">*</span><span class="n">open_args</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">fdopen</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="o">*</span><span class="n">fdopen_args</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_unique_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filename_pat</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                 <span class="n">chmod</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">IO</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">current_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">filename_pat</span><span class="p">(</span><span class="n">count</span><span class="p">))</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">safe_open</span><span class="p">(</span><span class="n">current_path</span><span class="p">,</span> <span class="n">chmod</span><span class="o">=</span><span class="n">chmod</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">),</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">current_path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="c1"># &quot;File exists,&quot; is okay, try a different name.</span>
+            <span class="k">if</span> <span class="n">err</span><span class="o">.</span><span class="n">errno</span> <span class="o">!=</span> <span class="n">errno</span><span class="o">.</span><span class="n">EEXIST</span><span class="p">:</span>
+                <span class="k">raise</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+
+<div class="viewcode-block" id="unique_file"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.unique_file">[docs]</a><span class="k">def</span> <span class="nf">unique_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chmod</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mo">0o777</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">IO</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Safely finds a unique file.</span>
+
+<span class="sd">    :param str path: path/filename.ext</span>
+<span class="sd">    :param int chmod: File mode</span>
+<span class="sd">    :param str mode: Open mode</span>
+
+<span class="sd">    :returns: tuple of file object and file name</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span><span class="p">,</span> <span class="n">tail</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_unique_file</span><span class="p">(</span>
+        <span class="n">path</span><span class="p">,</span> <span class="n">filename_pat</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">count</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%04d</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">tail</span><span class="p">)),</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">chmod</span><span class="o">=</span><span class="n">chmod</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="unique_lineage_name"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.unique_lineage_name">[docs]</a><span class="k">def</span> <span class="nf">unique_lineage_name</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chmod</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mo">0o644</span><span class="p">,</span>
+                        <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">IO</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Safely finds a unique file using lineage convention.</span>
+
+<span class="sd">    :param str path: directory path</span>
+<span class="sd">    :param str filename: proposed filename</span>
+<span class="sd">    :param int chmod: file mode</span>
+<span class="sd">    :param str mode: open mode</span>
+
+<span class="sd">    :returns: tuple of file object and file name (which may be modified</span>
+<span class="sd">        from the requested one by appending digits to ensure uniqueness)</span>
+
+<span class="sd">    :raises OSError: if writing files fails for an unanticipated reason,</span>
+<span class="sd">        such as a full disk or a lack of permission to write to</span>
+<span class="sd">        specified location.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">preferred_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.conf&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filename</span><span class="p">))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">safe_open</span><span class="p">(</span><span class="n">preferred_path</span><span class="p">,</span> <span class="n">chmod</span><span class="o">=</span><span class="n">chmod</span><span class="p">),</span> <span class="n">preferred_path</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">err</span><span class="o">.</span><span class="n">errno</span> <span class="o">!=</span> <span class="n">errno</span><span class="o">.</span><span class="n">EEXIST</span><span class="p">:</span>
+            <span class="k">raise</span>
+    <span class="k">return</span> <span class="n">_unique_file</span><span class="p">(</span>
+        <span class="n">path</span><span class="p">,</span> <span class="n">filename_pat</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">count</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">-</span><span class="si">%04d</span><span class="s2">.conf&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">count</span><span class="p">)),</span>
+        <span class="n">count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">chmod</span><span class="o">=</span><span class="n">chmod</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="safely_remove"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.safely_remove">[docs]</a><span class="k">def</span> <span class="nf">safely_remove</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Remove a file that may not exist.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">err</span><span class="o">.</span><span class="n">errno</span> <span class="o">!=</span> <span class="n">errno</span><span class="o">.</span><span class="n">ENOENT</span><span class="p">:</span>
+            <span class="k">raise</span></div>
+
+
+<div class="viewcode-block" id="get_filtered_names"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.get_filtered_names">[docs]</a><span class="k">def</span> <span class="nf">get_filtered_names</span><span class="p">(</span><span class="n">all_names</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Removes names that aren&#39;t considered valid by Let&#39;s Encrypt.</span>
+
+<span class="sd">    :param set all_names: all names found in the configuration</span>
+
+<span class="sd">    :returns: all found names that are considered valid by LE</span>
+<span class="sd">    :rtype: set</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">filtered_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">all_names</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">filtered_names</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">enforce_le_validity</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">errors</span><span class="o">.</span><span class="n">ConfigurationError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Not suggesting name &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">filtered_names</span></div>
+
+<div class="viewcode-block" id="get_os_info"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.get_os_info">[docs]</a><span class="k">def</span> <span class="nf">get_os_info</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get OS name and version</span>
+
+<span class="sd">    :returns: (os_name, os_version)</span>
+<span class="sd">    :rtype: `tuple` of `str`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">get_python_os_info</span><span class="p">(</span><span class="n">pretty</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="get_os_info_ua"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.get_os_info_ua">[docs]</a><span class="k">def</span> <span class="nf">get_os_info_ua</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get OS name and version string for User Agent</span>
+
+<span class="sd">    :returns: os_ua</span>
+<span class="sd">    :rtype: `str`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_USE_DISTRO</span><span class="p">:</span>
+        <span class="n">os_info</span> <span class="o">=</span> <span class="n">distro</span><span class="o">.</span><span class="n">name</span><span class="p">(</span><span class="n">pretty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_USE_DISTRO</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os_info</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">get_python_os_info</span><span class="p">(</span><span class="n">pretty</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">os_info</span></div>
+
+<div class="viewcode-block" id="get_systemd_os_like"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.get_systemd_os_like">[docs]</a><span class="k">def</span> <span class="nf">get_systemd_os_like</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a list of strings that indicate the distribution likeness to</span>
+<span class="sd">    other distributions.</span>
+
+<span class="sd">    :returns: List of distribution acronyms</span>
+<span class="sd">    :rtype: `list` of `str`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">_USE_DISTRO</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">distro</span><span class="o">.</span><span class="n">like</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="get_var_from_file"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.get_var_from_file">[docs]</a><span class="k">def</span> <span class="nf">get_var_from_file</span><span class="p">(</span><span class="n">varname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;/etc/os-release&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get single value from a file formatted like systemd /etc/os-release</span>
+
+<span class="sd">    :param str varname: Name of variable to fetch</span>
+<span class="sd">    :param str filepath: File path of os-release file</span>
+<span class="sd">    :returns: requested value</span>
+<span class="sd">    :rtype: `str`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">var_string</span> <span class="o">=</span> <span class="n">varname</span><span class="o">+</span><span class="s2">&quot;=&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+        <span class="n">contents</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">contents</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">var_string</span><span class="p">):</span>
+            <span class="c1"># Return the value of var, normalized</span>
+            <span class="k">return</span> <span class="n">_normalize_string</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="nb">len</span><span class="p">(</span><span class="n">var_string</span><span class="p">):])</span>
+    <span class="k">return</span> <span class="s2">&quot;&quot;</span></div>
+
+<span class="k">def</span> <span class="nf">_normalize_string</span><span class="p">(</span><span class="n">orig</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Helper function for get_var_from_file() to remove quotes</span>
+<span class="sd">    and whitespaces</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">orig</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+<div class="viewcode-block" id="get_python_os_info"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.get_python_os_info">[docs]</a><span class="k">def</span> <span class="nf">get_python_os_info</span><span class="p">(</span><span class="n">pretty</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get Operating System type/distribution and major version</span>
+<span class="sd">    using python platform module</span>
+
+<span class="sd">    :param bool pretty: If the returned OS name should be in longer (pretty) form</span>
+
+<span class="sd">    :returns: (os_name, os_version)</span>
+<span class="sd">    :rtype: `tuple` of `str`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">system_alias</span><span class="p">(</span>
+        <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">(),</span>
+        <span class="n">platform</span><span class="o">.</span><span class="n">release</span><span class="p">(),</span>
+        <span class="n">platform</span><span class="o">.</span><span class="n">version</span><span class="p">()</span>
+    <span class="p">)</span>
+    <span class="n">os_type</span><span class="p">,</span> <span class="n">os_ver</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">info</span>
+    <span class="n">os_type</span> <span class="o">=</span> <span class="n">os_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">os_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;linux&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">_USE_DISTRO</span><span class="p">:</span>
+        <span class="n">distro_name</span><span class="p">,</span> <span class="n">distro_version</span> <span class="o">=</span> <span class="n">distro</span><span class="o">.</span><span class="n">name</span><span class="p">()</span> <span class="k">if</span> <span class="n">pretty</span> <span class="k">else</span> <span class="n">distro</span><span class="o">.</span><span class="n">id</span><span class="p">(),</span> <span class="n">distro</span><span class="o">.</span><span class="n">version</span><span class="p">()</span>
+        <span class="c1"># On arch, these values are reportedly empty strings so handle it</span>
+        <span class="c1"># defensively</span>
+        <span class="c1"># so handle it defensively</span>
+        <span class="k">if</span> <span class="n">distro_name</span><span class="p">:</span>
+            <span class="n">os_type</span> <span class="o">=</span> <span class="n">distro_name</span>
+        <span class="k">if</span> <span class="n">distro_version</span><span class="p">:</span>
+            <span class="n">os_ver</span> <span class="o">=</span> <span class="n">distro_version</span>
+    <span class="k">elif</span> <span class="n">os_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;darwin&#39;</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="p">[</span><span class="s2">&quot;/usr/bin/sw_vers&quot;</span><span class="p">,</span> <span class="s2">&quot;-productVersion&quot;</span><span class="p">],</span>
+                <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">universal_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">env</span><span class="o">=</span><span class="n">env_no_snap_for_external_calls</span><span class="p">(),</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="p">[</span><span class="s2">&quot;sw_vers&quot;</span><span class="p">,</span> <span class="s2">&quot;-productVersion&quot;</span><span class="p">],</span>
+                <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">universal_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">env</span><span class="o">=</span><span class="n">env_no_snap_for_external_calls</span><span class="p">(),</span>
+            <span class="p">)</span>
+        <span class="n">os_ver</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">os_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;freebsd&#39;</span><span class="p">):</span>
+        <span class="c1"># eg &quot;9.3-RC3-p1&quot;</span>
+        <span class="n">os_ver</span> <span class="o">=</span> <span class="n">os_ver</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">os_ver</span> <span class="o">=</span> <span class="n">os_ver</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">platform</span><span class="o">.</span><span class="n">win32_ver</span><span class="p">()[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">os_ver</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">win32_ver</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Cases known to fall here: Cygwin python</span>
+        <span class="n">os_ver</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">return</span> <span class="n">os_type</span><span class="p">,</span> <span class="n">os_ver</span></div>
+
+<span class="c1"># Just make sure we don&#39;t get pwned... Make sure that it also doesn&#39;t</span>
+<span class="c1"># start with a period or have two consecutive periods &lt;- this needs to</span>
+<span class="c1"># be done in addition to the regex</span>
+<span class="n">EMAIL_REGEX</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+$&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="safe_email"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.safe_email">[docs]</a><span class="k">def</span> <span class="nf">safe_email</span><span class="p">(</span><span class="n">email</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Scrub email address before using it.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">EMAIL_REGEX</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">email</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="n">email</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;..&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">email</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid email address: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="DeprecatedArgumentAction"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.DeprecatedArgumentAction">[docs]</a><span class="k">class</span> <span class="nc">DeprecatedArgumentAction</span><span class="p">(</span><span class="n">argparse</span><span class="o">.</span><span class="n">Action</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Action to log a warning when an argument is used.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unused1</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">unused2</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">unused3</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+                 <span class="n">option_string</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Use of </span><span class="si">%s</span><span class="s2"> is deprecated.&quot;</span> <span class="o">%</span> <span class="n">option_string</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="add_deprecated_argument"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.add_deprecated_argument">[docs]</a><span class="k">def</span> <span class="nf">add_deprecated_argument</span><span class="p">(</span><span class="n">add_argument</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">argument_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                            <span class="n">nargs</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Adds a deprecated argument with the name argument_name.</span>
+
+<span class="sd">    Deprecated arguments are not shown in the help. If they are used on</span>
+<span class="sd">    the command line, a warning is shown stating that the argument is</span>
+<span class="sd">    deprecated and no other action is taken.</span>
+
+<span class="sd">    :param callable add_argument: Function that adds arguments to an</span>
+<span class="sd">        argument parser/group.</span>
+<span class="sd">    :param str argument_name: Name of deprecated argument.</span>
+<span class="sd">    :param nargs: Value for nargs when adding the argument to argparse.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">DeprecatedArgumentAction</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">configargparse</span><span class="o">.</span><span class="n">ACTION_TYPES_THAT_DONT_NEED_A_VALUE</span><span class="p">:</span>
+        <span class="c1"># In version 0.12.0 ACTION_TYPES_THAT_DONT_NEED_A_VALUE was</span>
+        <span class="c1"># changed from a set to a tuple.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">configargparse</span><span class="o">.</span><span class="n">ACTION_TYPES_THAT_DONT_NEED_A_VALUE</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+            <span class="n">configargparse</span><span class="o">.</span><span class="n">ACTION_TYPES_THAT_DONT_NEED_A_VALUE</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="n">DeprecatedArgumentAction</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">configargparse</span><span class="o">.</span><span class="n">ACTION_TYPES_THAT_DONT_NEED_A_VALUE</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="n">DeprecatedArgumentAction</span><span class="p">,)</span>
+    <span class="n">add_argument</span><span class="p">(</span><span class="n">argument_name</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">DeprecatedArgumentAction</span><span class="p">,</span>
+                 <span class="n">help</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">SUPPRESS</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="n">nargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="enforce_le_validity"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.enforce_le_validity">[docs]</a><span class="k">def</span> <span class="nf">enforce_le_validity</span><span class="p">(</span><span class="n">domain</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Checks that Let&#39;s Encrypt will consider domain to be valid.</span>
+
+<span class="sd">    :param str domain: FQDN to check</span>
+<span class="sd">    :type domain: `str`</span>
+<span class="sd">    :returns: The domain cast to `str`, with ASCII-only contents</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    :raises ConfigurationError: for invalid domains and cases where Let&#39;s</span>
+<span class="sd">                                Encrypt currently will not issue certificates</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">domain</span> <span class="o">=</span> <span class="n">enforce_domain_sanity</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;^[A-Za-z0-9.-]*$&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">errors</span><span class="o">.</span><span class="n">ConfigurationError</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> contains an invalid character. &quot;</span>
+            <span class="s2">&quot;Valid characters are A-Z, a-z, 0-9, ., and -.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">domain</span><span class="p">))</span>
+
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">errors</span><span class="o">.</span><span class="n">ConfigurationError</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> needs at least two labels&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">domain</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">label</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">errors</span><span class="o">.</span><span class="n">ConfigurationError</span><span class="p">(</span>
+                <span class="s1">&#39;label &quot;</span><span class="si">{0}</span><span class="s1">&quot; in domain &quot;</span><span class="si">{1}</span><span class="s1">&quot; cannot start with &quot;-&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">label</span><span class="p">,</span> <span class="n">domain</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">label</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">errors</span><span class="o">.</span><span class="n">ConfigurationError</span><span class="p">(</span>
+                <span class="s1">&#39;label &quot;</span><span class="si">{0}</span><span class="s1">&quot; in domain &quot;</span><span class="si">{1}</span><span class="s1">&quot; cannot end with &quot;-&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">label</span><span class="p">,</span> <span class="n">domain</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">domain</span></div>
+
+
+<div class="viewcode-block" id="enforce_domain_sanity"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.enforce_domain_sanity">[docs]</a><span class="k">def</span> <span class="nf">enforce_domain_sanity</span><span class="p">(</span><span class="n">domain</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Method which validates domain value and errors out if</span>
+<span class="sd">    the requirements are not met.</span>
+
+<span class="sd">    :param domain: Domain to check</span>
+<span class="sd">    :type domain: `str` or `bytes`</span>
+<span class="sd">    :raises ConfigurationError: for invalid domains and cases where Let&#39;s</span>
+<span class="sd">                                Encrypt currently will not issue certificates</span>
+
+<span class="sd">    :returns: The domain cast to `str`, with ASCII-only contents</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Unicode</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+            <span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="n">domain</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">UnicodeError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">errors</span><span class="o">.</span><span class="n">ConfigurationError</span><span class="p">(</span><span class="s2">&quot;Non-ASCII domain names not supported. &quot;</span>
+            <span class="s2">&quot;To issue for an Internationalized Domain Name, use Punycode.&quot;</span><span class="p">)</span>
+
+    <span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="c1"># Remove trailing dot</span>
+    <span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">domain</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">domain</span>
+
+    <span class="c1"># Separately check for odd &quot;domains&quot; like &quot;http://example.com&quot; to fail</span>
+    <span class="c1"># fast and provide a clear error message</span>
+    <span class="k">for</span> <span class="n">scheme</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;http&quot;</span><span class="p">,</span> <span class="s2">&quot;https&quot;</span><span class="p">]:</span>  <span class="c1"># Other schemes seem unlikely</span>
+        <span class="k">if</span> <span class="n">domain</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">://&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">scheme</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">errors</span><span class="o">.</span><span class="n">ConfigurationError</span><span class="p">(</span>
+                <span class="s2">&quot;Requested name </span><span class="si">{0}</span><span class="s2"> appears to be a URL, not a FQDN. &quot;</span>
+                <span class="s2">&quot;Try again without the leading </span><span class="se">\&quot;</span><span class="si">{1}</span><span class="s2">://</span><span class="se">\&quot;</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">domain</span><span class="p">,</span> <span class="n">scheme</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">is_ipaddress</span><span class="p">(</span><span class="n">domain</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">errors</span><span class="o">.</span><span class="n">ConfigurationError</span><span class="p">(</span>
+            <span class="s2">&quot;Requested name </span><span class="si">{0}</span><span class="s2"> is an IP address. The Let&#39;s Encrypt &quot;</span>
+            <span class="s2">&quot;certificate authority will not issue certificates for a &quot;</span>
+            <span class="s2">&quot;bare IP address.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">domain</span><span class="p">))</span>
+
+    <span class="c1"># FQDN checks according to RFC 2181: domain name should be less than 255</span>
+    <span class="c1"># octets (inclusive). And each label is 1 - 63 octets (inclusive).</span>
+    <span class="c1"># https://tools.ietf.org/html/rfc2181#section-11</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Requested domain </span><span class="si">{0}</span><span class="s2"> is not a FQDN because&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">255</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">errors</span><span class="o">.</span><span class="n">ConfigurationError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> it is too long.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">l</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">errors</span><span class="o">.</span><span class="n">ConfigurationError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> it contains an empty label.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">63</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">errors</span><span class="o">.</span><span class="n">ConfigurationError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> label </span><span class="si">{1}</span><span class="s2"> is too long.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">domain</span></div>
+
+
+<div class="viewcode-block" id="is_ipaddress"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.is_ipaddress">[docs]</a><span class="k">def</span> <span class="nf">is_ipaddress</span><span class="p">(</span><span class="n">address</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Is given address string form of IP(v4 or v6) address?</span>
+
+<span class="sd">    :param address: address to check</span>
+<span class="sd">    :type address: `str`</span>
+
+<span class="sd">    :returns: True if address is valid IP address, otherwise return False.</span>
+<span class="sd">    :rtype: bool</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">socket</span><span class="o">.</span><span class="n">inet_pton</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">address</span><span class="p">)</span>
+        <span class="c1"># If this line runs it was ip address (ipv4)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+        <span class="c1"># It wasn&#39;t an IPv4 address, so try ipv6</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">socket</span><span class="o">.</span><span class="n">inet_pton</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET6</span><span class="p">,</span> <span class="n">address</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="n">socket</span><span class="o">.</span><span class="n">error</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="is_wildcard_domain"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.is_wildcard_domain">[docs]</a><span class="k">def</span> <span class="nf">is_wildcard_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;&quot;Is domain a wildcard domain?</span>
+
+<span class="sd">    :param domain: domain to check</span>
+<span class="sd">    :type domain: `bytes` or `str`</span>
+
+<span class="sd">    :returns: True if domain is a wildcard, otherwise, False</span>
+<span class="sd">    :rtype: bool</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">domain</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;*.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">domain</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;*.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_strict_version"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.get_strict_version">[docs]</a><span class="k">def</span> <span class="nf">get_strict_version</span><span class="p">(</span><span class="n">normalized</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;distutils.version.StrictVersion&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Converts a normalized version to a strict version.</span>
+
+<span class="sd">    :param str normalized: normalized version string</span>
+
+<span class="sd">    :returns: An equivalent strict version</span>
+<span class="sd">    :rtype: distutils.version.StrictVersion</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;certbot.util.get_strict_version is deprecated and will be &quot;</span>
+                  <span class="s2">&quot;removed in a future release.&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">distutils.version</span>
+        <span class="c1"># strict version ending with &quot;a&quot; and a number designates a pre-release</span>
+        <span class="k">return</span> <span class="n">distutils</span><span class="o">.</span><span class="n">version</span><span class="o">.</span><span class="n">StrictVersion</span><span class="p">(</span><span class="n">normalized</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.dev&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="is_staging"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.is_staging">[docs]</a><span class="k">def</span> <span class="nf">is_staging</span><span class="p">(</span><span class="n">srv</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine whether a given ACME server is a known test / staging server.</span>
+
+<span class="sd">    :param str srv: the URI for the ACME server</span>
+<span class="sd">    :returns: True iff srv is a known test / staging server</span>
+<span class="sd">    :rtype bool:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">srv</span> <span class="o">==</span> <span class="n">constants</span><span class="o">.</span><span class="n">STAGING_URI</span> <span class="ow">or</span> <span class="s2">&quot;staging&quot;</span> <span class="ow">in</span> <span class="n">srv</span></div>
+
+
+<div class="viewcode-block" id="atexit_register"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.atexit_register">[docs]</a><span class="k">def</span> <span class="nf">atexit_register</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Sets func to be called before the program exits.</span>
+
+<span class="sd">    Special care is taken to ensure func is only called when the process</span>
+<span class="sd">    that first imports this module exits rather than any child processes.</span>
+
+<span class="sd">    :param function func: function to be called in case of an error</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">atexit</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">_atexit_call</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="parse_loose_version"><a class="viewcode-back" href="../../api/certbot.util.html#certbot.util.parse_loose_version">[docs]</a><span class="k">def</span> <span class="nf">parse_loose_version</span><span class="p">(</span><span class="n">version_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;Parses a version string into its components.</span>
+
+<span class="sd">    This code and the returned tuple is based on the now deprecated</span>
+<span class="sd">    distutils.version.LooseVersion class from the Python standard library.</span>
+<span class="sd">    Two LooseVersion classes and two lists as returned by this function should</span>
+<span class="sd">    compare in the same way. See</span>
+<span class="sd">    https://github.com/python/cpython/blob/v3.10.0/Lib/distutils/version.py#L205-L347.</span>
+
+<span class="sd">    :param str version_string: version string</span>
+
+<span class="sd">    :returns: list of parsed version string components</span>
+<span class="sd">    :rtype: list</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">components</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span>
+    <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">_VERSION_COMPONENT_RE</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">version_string</span><span class="p">)</span>
+                          <span class="k">if</span> <span class="n">x</span> <span class="ow">and</span> <span class="n">x</span> <span class="o">!=</span> <span class="s1">&#39;.&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">components</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">components</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">components</span></div>
+
+
+<span class="k">def</span> <span class="nf">_atexit_call</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">_INITIAL_PID</span> <span class="o">==</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">():</span>
+        <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Certbot</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../what.html">What is a Certificate?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Get Certbot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../using.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../compatibility.html">Backwards Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../resources.html">Resources</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

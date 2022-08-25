@@ -1,0 +1,187 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>certbot.compat.os module &#8212; Certbot 1.26.0.dev0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="certbot.display package" href="certbot.display.html" />
+    <link rel="prev" title="certbot.compat.misc module" href="certbot.compat.misc.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-certbot.compat.os">
+<span id="certbot-compat-os-module"></span><h1>certbot.compat.os module<a class="headerlink" href="#module-certbot.compat.os" title="Permalink to this headline">¶</a></h1>
+<p>This compat modules is a wrapper of the core os module that forbids usage of specific operations
+(e.g. chown, chmod, getuid) that would be harmful to the Windows file security model of Certbot.
+This module is intended to replace standard os module throughout certbot projects (except acme).</p>
+<p>This module has the same API as the os module in the Python standard library
+except for the functions defined below.</p>
+<p>isort:skip_file</p>
+<dl class="function">
+<dt id="certbot.compat.os.chmod">
+<code class="descclassname">certbot.compat.os.</code><code class="descname">chmod</code><span class="sig-paren">(</span><em>*unused_args</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/compat/os.html#chmod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.compat.os.chmod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method os.chmod() is forbidden</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="certbot.compat.os.umask">
+<code class="descclassname">certbot.compat.os.</code><code class="descname">umask</code><span class="sig-paren">(</span><em>*unused_args</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/compat/os.html#umask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.compat.os.umask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method os.chmod() is forbidden</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="certbot.compat.os.chown">
+<code class="descclassname">certbot.compat.os.</code><code class="descname">chown</code><span class="sig-paren">(</span><em>*unused_args</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/compat/os.html#chown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.compat.os.chown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method os.chown() is forbidden</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="certbot.compat.os.open">
+<code class="descclassname">certbot.compat.os.</code><code class="descname">open</code><span class="sig-paren">(</span><em>*unused_args</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/compat/os.html#open"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.compat.os.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method os.open() is forbidden</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="certbot.compat.os.mkdir">
+<code class="descclassname">certbot.compat.os.</code><code class="descname">mkdir</code><span class="sig-paren">(</span><em>*unused_args</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/compat/os.html#mkdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.compat.os.mkdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method os.mkdir() is forbidden</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="certbot.compat.os.makedirs">
+<code class="descclassname">certbot.compat.os.</code><code class="descname">makedirs</code><span class="sig-paren">(</span><em>*unused_args</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/compat/os.html#makedirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.compat.os.makedirs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method os.makedirs() is forbidden</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="certbot.compat.os.rename">
+<code class="descclassname">certbot.compat.os.</code><code class="descname">rename</code><span class="sig-paren">(</span><em>*unused_args</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/compat/os.html#rename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.compat.os.rename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method os.rename() is forbidden</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="certbot.compat.os.replace">
+<code class="descclassname">certbot.compat.os.</code><code class="descname">replace</code><span class="sig-paren">(</span><em>*unused_args</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/compat/os.html#replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.compat.os.replace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method os.replace() is forbidden</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="certbot.compat.os.access">
+<code class="descclassname">certbot.compat.os.</code><code class="descname">access</code><span class="sig-paren">(</span><em>*unused_args</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/compat/os.html#access"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.compat.os.access" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method os.access() is forbidden</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="certbot.compat.os.stat">
+<code class="descclassname">certbot.compat.os.</code><code class="descname">stat</code><span class="sig-paren">(</span><em>*unused_args</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/compat/os.html#stat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.compat.os.stat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method os.stat() is forbidden</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="certbot.compat.os.fstat">
+<code class="descclassname">certbot.compat.os.</code><code class="descname">fstat</code><span class="sig-paren">(</span><em>*unused_args</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/compat/os.html#fstat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.compat.os.fstat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method os.stat() is forbidden</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Certbot</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../what.html">What is a Certificate?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Get Certbot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../compatibility.html">Backwards Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources.html">Resources</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../api.html">API Documentation</a><ul>
+  <li><a href="certbot.html">certbot package</a><ul>
+  <li><a href="certbot.compat.html">certbot.compat package</a><ul>
+      <li>Previous: <a href="certbot.compat.misc.html" title="previous chapter">certbot.compat.misc module</a></li>
+      <li>Next: <a href="certbot.display.html" title="next chapter">certbot.display package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="../_sources/api/certbot.compat.os.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

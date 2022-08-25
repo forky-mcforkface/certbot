@@ -1,0 +1,163 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Introduction &#8212; Certbot 1.26.0.dev0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="What is a Certificate?" href="what.html" />
+    <link rel="prev" title="Welcome to the Certbot documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">To get started quickly, use the <a class="reference external" href="https://certbot.eff.org">interactive installation guide</a>.</p>
+</div>
+<p>Certbot is part of EFF’s effort to encrypt the entire Internet. Secure communication over the Web relies on HTTPS, which requires the use of a digital certificate that lets browsers verify the identity of web servers (e.g., is that really google.com?). Web servers obtain their certificates from trusted third parties called certificate authorities (CAs). Certbot is an easy-to-use client that fetches a certificate from Let’s Encrypt—an open certificate authority launched by the EFF, Mozilla, and others—and deploys it to a web server.</p>
+<p>Anyone who has gone through the trouble of setting up a secure website knows what a hassle getting and maintaining a certificate is. Certbot and Let’s Encrypt can automate away the pain and let you turn on and manage HTTPS with simple commands. Using Certbot and Let’s Encrypt is free, so there’s no need to arrange payment.</p>
+<p>How you use Certbot depends on the configuration of your web server. The best way to get started is to use our <a class="reference external" href="https://certbot.eff.org">interactive guide</a>. It generates instructions based on your configuration settings. In most cases, you’ll need <a class="reference external" href="https://certbot.eff.org/faq/#does-certbot-require-root-administrator-privileges">root or administrator access</a> to your web server to run Certbot.</p>
+<p>Certbot is meant to be run directly on your web server, not on your personal computer. If you’re using a hosted service and don’t have direct access to your web server, you might not be able to use Certbot. Check with your hosting provider for documentation about uploading certificates or using certificates issued by Let’s Encrypt.</p>
+<p>Certbot is a fully-featured, extensible client for the Let’s
+Encrypt CA (or any other CA that speaks the <a class="reference external" href="https://datatracker.ietf.org/doc/html/rfc8555">ACME</a>
+protocol) that can automate the tasks of obtaining certificates and
+configuring webservers to use them. This client runs on Unix-based operating
+systems.</p>
+<p>To see the changes made to Certbot between versions please refer to our
+<a class="reference external" href="https://github.com/certbot/certbot/blob/master/certbot/CHANGELOG.md">changelog</a>.</p>
+<div class="section" id="contributing">
+<h2>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h2>
+<p>If you’d like to contribute to this project please read <a class="reference external" href="https://certbot.eff.org/docs/contributing.html">Developer Guide</a>.</p>
+<p>This project is governed by <a class="reference external" href="https://www.eff.org/pages/eppcode">EFF’s Public Projects Code of Conduct</a>.</p>
+</div>
+<div class="section" id="how-to-run-the-client">
+<span id="installation"></span><h2>How to run the client<a class="headerlink" href="#how-to-run-the-client" title="Permalink to this headline">¶</a></h2>
+<p>The easiest way to install and run Certbot is by visiting <a class="reference external" href="https://certbot.eff.org/">certbot.eff.org</a>,
+where you can find the correct instructions for many web server and OS
+combinations.  For more information, see <a class="reference external" href="https://certbot.eff.org/docs/install.html">Get Certbot</a>.</p>
+</div>
+<div class="section" id="understanding-the-client-in-more-depth">
+<h2>Understanding the client in more depth<a class="headerlink" href="#understanding-the-client-in-more-depth" title="Permalink to this headline">¶</a></h2>
+<p>To understand what the client is doing in detail, it’s important to
+understand the way it uses plugins.  Please see the <a class="reference external" href="https://certbot.eff.org/docs/using.html#plugins">explanation of
+plugins</a> in
+the User Guide.</p>
+<div class="section" id="links">
+<h3>Links<a class="headerlink" href="#links" title="Permalink to this headline">¶</a></h3>
+<p>Documentation: <a class="reference external" href="https://certbot.eff.org/docs">https://certbot.eff.org/docs</a></p>
+<p>Software project: <a class="reference external" href="https://github.com/certbot/certbot">https://github.com/certbot/certbot</a></p>
+<p>Notes for developers: <a class="reference external" href="https://certbot.eff.org/docs/contributing.html">https://certbot.eff.org/docs/contributing.html</a></p>
+<p>Main Website: <a class="reference external" href="https://certbot.eff.org">https://certbot.eff.org</a></p>
+<p>Let’s Encrypt Website: <a class="reference external" href="https://letsencrypt.org">https://letsencrypt.org</a></p>
+<p>Community: <a class="reference external" href="https://community.letsencrypt.org">https://community.letsencrypt.org</a></p>
+<p>ACME spec: <a class="reference external" href="https://tools.ietf.org/html/rfc8555">RFC 8555</a></p>
+<p>ACME working area in github (archived): <a class="reference external" href="https://github.com/ietf-wg-acme/acme">https://github.com/ietf-wg-acme/acme</a></p>
+<p><a class="reference external" href="https://dev.azure.com/certbot/certbot/_build?definitionId=5"><img alt="Azure Pipelines CI status" src="https://img.shields.io/azure-devops/build/certbot/ba534f81-a483-4b9b-9b4e-a60bec8fee72/5/master" /></a></p>
+</div>
+<div class="section" id="system-requirements">
+<h3>System Requirements<a class="headerlink" href="#system-requirements" title="Permalink to this headline">¶</a></h3>
+<p>See <a class="reference external" href="https://certbot.eff.org/docs/install.html#system-requirements">https://certbot.eff.org/docs/install.html#system-requirements</a>.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Certbot</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#contributing">Contributing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-run-the-client">How to run the client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#understanding-the-client-in-more-depth">Understanding the client in more depth</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="what.html">What is a Certificate?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Get Certbot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compatibility.html">Backwards Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">Resources</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to the Certbot documentation!</a></li>
+      <li>Next: <a href="what.html" title="next chapter">What is a Certificate?</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/intro.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

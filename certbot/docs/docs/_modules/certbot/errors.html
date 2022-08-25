@@ -1,0 +1,217 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>certbot.errors &#8212; Certbot 1.26.0.dev0 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for certbot.errors</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Certbot client errors.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Set</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">certbot.achallenges</span> <span class="kn">import</span> <span class="n">AnnotatedChallenge</span>
+
+
+<div class="viewcode-block" id="Error"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.Error">[docs]</a><span class="k">class</span> <span class="nc">Error</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generic Certbot client error.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AccountStorageError"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.AccountStorageError">[docs]</a><span class="k">class</span> <span class="nc">AccountStorageError</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generic `.AccountStorage` error.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AccountNotFound"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.AccountNotFound">[docs]</a><span class="k">class</span> <span class="nc">AccountNotFound</span><span class="p">(</span><span class="n">AccountStorageError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Account not found error.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="ReverterError"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.ReverterError">[docs]</a><span class="k">class</span> <span class="nc">ReverterError</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Certbot Reverter error.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="SubprocessError"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.SubprocessError">[docs]</a><span class="k">class</span> <span class="nc">SubprocessError</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Subprocess handling error.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="CertStorageError"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.CertStorageError">[docs]</a><span class="k">class</span> <span class="nc">CertStorageError</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generic `.CertStorage` error.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="HookCommandNotFound"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.HookCommandNotFound">[docs]</a><span class="k">class</span> <span class="nc">HookCommandNotFound</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Failed to find a hook command in the PATH.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="SignalExit"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.SignalExit">[docs]</a><span class="k">class</span> <span class="nc">SignalExit</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A Unix signal was received while in the ErrorHandler context manager.&quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="OverlappingMatchFound"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.OverlappingMatchFound">[docs]</a><span class="k">class</span> <span class="nc">OverlappingMatchFound</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Multiple lineages matched what should have been a unique result.&quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="LockError"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.LockError">[docs]</a><span class="k">class</span> <span class="nc">LockError</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;File locking error.&quot;&quot;&quot;</span></div>
+
+
+<span class="c1"># Auth Handler Errors</span>
+<div class="viewcode-block" id="AuthorizationError"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.AuthorizationError">[docs]</a><span class="k">class</span> <span class="nc">AuthorizationError</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Authorization error.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="FailedChallenges"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.FailedChallenges">[docs]</a><span class="k">class</span> <span class="nc">FailedChallenges</span><span class="p">(</span><span class="n">AuthorizationError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Failed challenges error.</span>
+
+<span class="sd">    :ivar set failed_achalls: Failed `.AnnotatedChallenge` instances.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">failed_achalls</span><span class="p">:</span> <span class="n">Set</span><span class="p">[</span><span class="s1">&#39;AnnotatedChallenge&#39;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">failed_achalls</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">failed_achalls</span> <span class="o">=</span> <span class="n">failed_achalls</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;Failed authorization procedure. </span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> (</span><span class="si">{1}</span><span class="s2">): </span><span class="si">{2}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">achall</span><span class="o">.</span><span class="n">domain</span><span class="p">,</span> <span class="n">achall</span><span class="o">.</span><span class="n">typ</span><span class="p">,</span> <span class="n">achall</span><span class="o">.</span><span class="n">error</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">achall</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">failed_achalls</span> <span class="k">if</span> <span class="n">achall</span><span class="o">.</span><span class="n">error</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">))</span></div>
+
+
+<span class="c1"># Plugin Errors</span>
+<div class="viewcode-block" id="PluginError"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.PluginError">[docs]</a><span class="k">class</span> <span class="nc">PluginError</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Certbot Plugin error.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="PluginEnhancementAlreadyPresent"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.PluginEnhancementAlreadyPresent">[docs]</a><span class="k">class</span> <span class="nc">PluginEnhancementAlreadyPresent</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Enhancement was already set &quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="PluginSelectionError"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.PluginSelectionError">[docs]</a><span class="k">class</span> <span class="nc">PluginSelectionError</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A problem with plugin/configurator selection or setup&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="NoInstallationError"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.NoInstallationError">[docs]</a><span class="k">class</span> <span class="nc">NoInstallationError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Certbot No Installation error.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="MisconfigurationError"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.MisconfigurationError">[docs]</a><span class="k">class</span> <span class="nc">MisconfigurationError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Certbot Misconfiguration error.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="NotSupportedError"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.NotSupportedError">[docs]</a><span class="k">class</span> <span class="nc">NotSupportedError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Certbot Plugin function not supported error.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="PluginStorageError"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.PluginStorageError">[docs]</a><span class="k">class</span> <span class="nc">PluginStorageError</span><span class="p">(</span><span class="n">PluginError</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Certbot Plugin Storage error.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="StandaloneBindError"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.StandaloneBindError">[docs]</a><span class="k">class</span> <span class="nc">StandaloneBindError</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Standalone plugin bind error.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">socket_error</span><span class="p">:</span> <span class="ne">OSError</span><span class="p">,</span> <span class="n">port</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="s2">&quot;Problem binding to port </span><span class="si">{0}</span><span class="s2">: </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">port</span><span class="p">,</span> <span class="n">socket_error</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">socket_error</span> <span class="o">=</span> <span class="n">socket_error</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">port</span></div>
+
+
+<div class="viewcode-block" id="ConfigurationError"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.ConfigurationError">[docs]</a><span class="k">class</span> <span class="nc">ConfigurationError</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Configuration sanity error.&quot;&quot;&quot;</span></div>
+
+<span class="c1"># NoninteractiveDisplay error:</span>
+
+<div class="viewcode-block" id="MissingCommandlineFlag"><a class="viewcode-back" href="../../api/certbot.errors.html#certbot.errors.MissingCommandlineFlag">[docs]</a><span class="k">class</span> <span class="nc">MissingCommandlineFlag</span><span class="p">(</span><span class="n">Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A command line argument was missing in noninteractive usage&quot;&quot;&quot;</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">Certbot</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../what.html">What is a Certificate?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Get Certbot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../using.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../compatibility.html">Backwards Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../resources.html">Resources</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

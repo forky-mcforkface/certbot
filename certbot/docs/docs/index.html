@@ -1,0 +1,174 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Welcome to the Certbot documentation! &#8212; Certbot 1.26.0.dev0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Introduction" href="intro.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-the-certbot-documentation">
+<h1>Welcome to the Certbot documentation!<a class="headerlink" href="#welcome-to-the-certbot-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro.html#contributing">Contributing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro.html#how-to-run-the-client">How to run the client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro.html#understanding-the-client-in-more-depth">Understanding the client in more depth</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="what.html">What is a Certificate?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="what.html#certificates-and-lineages">Certificates and Lineages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Get Certbot</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#system-requirements">System Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#installation">Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="using.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="using.html#certbot-commands">Certbot Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using.html#getting-certificates-and-choosing-plugins">Getting certificates (and choosing plugins)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using.html#managing-certificates">Managing certificates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using.html#where-are-my-certificates">Where are my certificates?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using.html#pre-and-post-validation-hooks">Pre and Post Validation Hooks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using.html#changing-the-acme-server">Changing the ACME Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using.html#id5">Lock Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using.html#configuration-file">Configuration file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using.html#log-rotation">Log Rotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using.html#certbot-command-line-options">Certbot command-line options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using.html#getting-help">Getting help</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Developer Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#code-components-and-layout">Code components and layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#coding-style">Coding style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#use-certbot-compat-os-instead-of-os">Use <code class="docutils literal notranslate"><span class="pre">certbot.compat.os</span></code> instead of <code class="docutils literal notranslate"><span class="pre">os</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#mypy-type-annotations">Mypy type annotations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#submitting-a-pull-request">Submitting a pull request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#asking-for-help">Asking for help</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#building-the-certbot-and-dns-plugin-snaps">Building the Certbot and DNS plugin snaps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#updating-the-documentation">Updating the documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#certbot-s-dependencies">Certbot’s dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#running-the-client-with-docker">Running the client with Docker</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="packaging.html">Packaging Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="packaging.html#releases">Releases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="packaging.html#notes-for-package-maintainers">Notes for package maintainers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="compatibility.html">Backwards Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">Resources</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Certbot</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="what.html">What is a Certificate?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Get Certbot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compatibility.html">Backwards Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">Resources</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="intro.html" title="next chapter">Introduction</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,276 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>certbot.errors module &#8212; Certbot 1.26.0.dev0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="certbot.interfaces module" href="certbot.interfaces.html" />
+    <link rel="prev" title="certbot.crypto_util module" href="certbot.crypto_util.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-certbot.errors">
+<span id="certbot-errors-module"></span><h1>certbot.errors module<a class="headerlink" href="#module-certbot.errors" title="Permalink to this headline">¶</a></h1>
+<p>Certbot client errors.</p>
+<dl class="exception">
+<dt id="certbot.errors.Error">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">Error</code><a class="reference internal" href="../_modules/certbot/errors.html#Error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.Error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
+<p>Generic Certbot client error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.AccountStorageError">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">AccountStorageError</code><a class="reference internal" href="../_modules/certbot/errors.html#AccountStorageError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.AccountStorageError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>Generic <code class="xref py py-obj docutils literal notranslate"><span class="pre">AccountStorage</span></code> error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.AccountNotFound">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">AccountNotFound</code><a class="reference internal" href="../_modules/certbot/errors.html#AccountNotFound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.AccountNotFound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.AccountStorageError" title="certbot.errors.AccountStorageError"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.AccountStorageError</span></code></a></p>
+<p>Account not found error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.ReverterError">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">ReverterError</code><a class="reference internal" href="../_modules/certbot/errors.html#ReverterError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.ReverterError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>Certbot Reverter error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.SubprocessError">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">SubprocessError</code><a class="reference internal" href="../_modules/certbot/errors.html#SubprocessError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.SubprocessError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>Subprocess handling error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.CertStorageError">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">CertStorageError</code><a class="reference internal" href="../_modules/certbot/errors.html#CertStorageError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.CertStorageError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>Generic <code class="xref py py-obj docutils literal notranslate"><span class="pre">CertStorage</span></code> error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.HookCommandNotFound">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">HookCommandNotFound</code><a class="reference internal" href="../_modules/certbot/errors.html#HookCommandNotFound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.HookCommandNotFound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>Failed to find a hook command in the PATH.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.SignalExit">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">SignalExit</code><a class="reference internal" href="../_modules/certbot/errors.html#SignalExit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.SignalExit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>A Unix signal was received while in the ErrorHandler context manager.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.OverlappingMatchFound">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">OverlappingMatchFound</code><a class="reference internal" href="../_modules/certbot/errors.html#OverlappingMatchFound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.OverlappingMatchFound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>Multiple lineages matched what should have been a unique result.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.LockError">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">LockError</code><a class="reference internal" href="../_modules/certbot/errors.html#LockError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.LockError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>File locking error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.AuthorizationError">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">AuthorizationError</code><a class="reference internal" href="../_modules/certbot/errors.html#AuthorizationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.AuthorizationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>Authorization error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.FailedChallenges">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">FailedChallenges</code><span class="sig-paren">(</span><em>failed_achalls: Set[AnnotatedChallenge]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/errors.html#FailedChallenges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.FailedChallenges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.AuthorizationError" title="certbot.errors.AuthorizationError"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.AuthorizationError</span></code></a></p>
+<p>Failed challenges error.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><strong>failed_achalls</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.10)"><em>set</em></a>) – Failed <a class="reference internal" href="certbot.achallenges.html#certbot.achallenges.AnnotatedChallenge" title="certbot.achallenges.AnnotatedChallenge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AnnotatedChallenge</span></code></a> instances.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.PluginError">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">PluginError</code><a class="reference internal" href="../_modules/certbot/errors.html#PluginError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.PluginError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>Certbot Plugin error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.PluginEnhancementAlreadyPresent">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">PluginEnhancementAlreadyPresent</code><a class="reference internal" href="../_modules/certbot/errors.html#PluginEnhancementAlreadyPresent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.PluginEnhancementAlreadyPresent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>Enhancement was already set</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.PluginSelectionError">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">PluginSelectionError</code><a class="reference internal" href="../_modules/certbot/errors.html#PluginSelectionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.PluginSelectionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>A problem with plugin/configurator selection or setup</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.NoInstallationError">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">NoInstallationError</code><a class="reference internal" href="../_modules/certbot/errors.html#NoInstallationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.NoInstallationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.PluginError" title="certbot.errors.PluginError"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.PluginError</span></code></a></p>
+<p>Certbot No Installation error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.MisconfigurationError">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">MisconfigurationError</code><a class="reference internal" href="../_modules/certbot/errors.html#MisconfigurationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.MisconfigurationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.PluginError" title="certbot.errors.PluginError"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.PluginError</span></code></a></p>
+<p>Certbot Misconfiguration error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.NotSupportedError">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">NotSupportedError</code><a class="reference internal" href="../_modules/certbot/errors.html#NotSupportedError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.NotSupportedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.PluginError" title="certbot.errors.PluginError"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.PluginError</span></code></a></p>
+<p>Certbot Plugin function not supported error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.PluginStorageError">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">PluginStorageError</code><a class="reference internal" href="../_modules/certbot/errors.html#PluginStorageError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.PluginStorageError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.PluginError" title="certbot.errors.PluginError"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.PluginError</span></code></a></p>
+<p>Certbot Plugin Storage error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.StandaloneBindError">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">StandaloneBindError</code><span class="sig-paren">(</span><em>socket_error: OSError</em>, <em>port: int</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/errors.html#StandaloneBindError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.StandaloneBindError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>Standalone plugin bind error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.ConfigurationError">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">ConfigurationError</code><a class="reference internal" href="../_modules/certbot/errors.html#ConfigurationError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.ConfigurationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>Configuration sanity error.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="certbot.errors.MissingCommandlineFlag">
+<em class="property">exception </em><code class="descclassname">certbot.errors.</code><code class="descname">MissingCommandlineFlag</code><a class="reference internal" href="../_modules/certbot/errors.html#MissingCommandlineFlag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.errors.MissingCommandlineFlag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.errors.Error" title="certbot.errors.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.errors.Error</span></code></a></p>
+<p>A command line argument was missing in noninteractive usage</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Certbot</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../what.html">What is a Certificate?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Get Certbot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../compatibility.html">Backwards Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources.html">Resources</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../api.html">API Documentation</a><ul>
+  <li><a href="certbot.html">certbot package</a><ul>
+      <li>Previous: <a href="certbot.crypto_util.html" title="previous chapter">certbot.crypto_util module</a></li>
+      <li>Next: <a href="certbot.interfaces.html" title="next chapter">certbot.interfaces module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="../_sources/api/certbot.errors.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

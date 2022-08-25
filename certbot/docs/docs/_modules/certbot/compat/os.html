@@ -1,0 +1,274 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>certbot.compat.os &#8212; Certbot 1.26.0.dev0 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for certbot.compat.os</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This compat modules is a wrapper of the core os module that forbids usage of specific operations</span>
+<span class="sd">(e.g. chown, chmod, getuid) that would be harmful to the Windows file security model of Certbot.</span>
+<span class="sd">This module is intended to replace standard os module throughout certbot projects (except acme).</span>
+
+<span class="sd">This module has the same API as the os module in the Python standard library</span>
+<span class="sd">except for the functions defined below.</span>
+
+<span class="sd">isort:skip_file</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># NB1: If adding a new documented function to compat.os, ensure that it is added to the</span>
+<span class="c1">#       &#39;:members:&#39; list in certbot/docs/api/certbot.compat.os.rst.</span>
+
+<span class="c1"># NB2: Each function defined in compat.os is marked with &quot;type: ignore&quot; to avoid mypy</span>
+<span class="c1">#      to complain that a function is redefined (because we imported if first from os).</span>
+
+<span class="c1"># pylint: disable=function-redefined</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
+
+<span class="c1"># First round of wrapping: we import statically all public attributes exposed by the os module</span>
+<span class="c1"># This allows in particular to have pylint, mypy, IDEs be aware that most of os members are</span>
+<span class="c1"># available in certbot.compat.os.</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="o">*</span>  <span class="c1"># pylint: disable=wildcard-import,unused-wildcard-import,redefined-builtin,os-module-forbidden</span>
+
+<span class="c1"># Second round of wrapping: we import dynamically all attributes from the os module that have not</span>
+<span class="c1"># yet been imported by the first round (static import). This covers in particular the case of</span>
+<span class="c1"># specific python 3.x versions where not all public attributes are in the special __all__ of os,</span>
+<span class="c1"># and so not in `from os import *`.</span>
+<span class="kn">import</span> <span class="nn">os</span> <span class="k">as</span> <span class="nn">std_os</span>  <span class="c1"># pylint: disable=os-module-forbidden</span>
+<span class="kn">import</span> <span class="nn">sys</span> <span class="k">as</span> <span class="nn">std_sys</span>
+
+<span class="n">ourselves</span> <span class="o">=</span> <span class="n">std_sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="vm">__name__</span><span class="p">]</span>
+<span class="c1"># Adding all of stdlib os to this module confuses Sphinx so we skip this when</span>
+<span class="c1"># building the documentation.</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">std_os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CERTBOT_DOCS&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">attribute</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">std_os</span><span class="p">):</span>
+        <span class="c1"># Check if the attribute does not already exist in our module. It could</span>
+        <span class="c1"># be internal attributes of the module (__name__, __doc__), or</span>
+        <span class="c1"># attributes from standard os already imported with `from os import *`.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ourselves</span><span class="p">,</span> <span class="n">attribute</span><span class="p">):</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">ourselves</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">std_os</span><span class="p">,</span> <span class="n">attribute</span><span class="p">))</span>
+
+<span class="c1"># Import our internal path module, then allow certbot.compat.os.path</span>
+<span class="c1"># to behave as a module (similarly to os.path).</span>
+<span class="kn">from</span> <span class="nn">certbot.compat</span> <span class="kn">import</span> <span class="n">_path</span> <span class="k">as</span> <span class="n">path</span>  <span class="c1"># type: ignore  # pylint: disable=wrong-import-position</span>
+<span class="n">std_sys</span><span class="o">.</span><span class="n">modules</span><span class="p">[</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39;.path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">path</span>
+
+<span class="c1"># Clean all remaining importables that are not from the core os module.</span>
+<span class="k">del</span> <span class="n">ourselves</span><span class="p">,</span> <span class="n">std_os</span><span class="p">,</span> <span class="n">std_sys</span>
+
+
+<span class="c1"># Chmod is the root of all evil for our security model on Windows. With the default implementation</span>
+<span class="c1"># of os.chmod on Windows, almost all bits on mode will be ignored, and only a general RO or RW will</span>
+<span class="c1"># be applied. The DACL, the inner mechanism to control file access on Windows, will stay on its</span>
+<span class="c1"># default definition, giving effectively at least read permissions to any one, as the default</span>
+<span class="c1"># permissions on root path will be inherit by the file (as NTFS state), and root path can be read</span>
+<span class="c1"># by anyone. So the given mode needs to be translated into a secured and not inherited DACL that</span>
+<span class="c1"># will be applied to this file using filesystem.chmod, calling internally the win32security</span>
+<span class="c1"># module to construct and apply the DACL. Complete security model to translate a POSIX mode into</span>
+<span class="c1"># a suitable DACL on Windows for Certbot can be found here:</span>
+<span class="c1"># https://github.com/certbot/certbot/issues/6356</span>
+<span class="c1"># Basically, it states that appropriate permissions will be set for the owner, nothing for the</span>
+<span class="c1"># group, appropriate permissions for the &quot;Everyone&quot; group, and all permissions to the</span>
+<span class="c1"># &quot;Administrators&quot; group + &quot;System&quot; user, as they can do everything anyway.</span>
+<div class="viewcode-block" id="chmod"><a class="viewcode-back" href="../../../api/certbot.compat.os.html#certbot.compat.os.chmod">[docs]</a><span class="k">def</span> <span class="nf">chmod</span><span class="p">(</span><span class="o">*</span><span class="n">unused_args</span><span class="p">,</span> <span class="o">**</span><span class="n">unused_kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+    <span class="sd">&quot;&quot;&quot;Method os.chmod() is forbidden&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Usage of os.chmod() is forbidden. &#39;</span>
+                       <span class="s1">&#39;Use certbot.compat.filesystem.chmod() instead.&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># Since there is no mode on Windows, there is no umask either, and so this method is a noop for</span>
+<span class="c1"># this platform. In order to have a consistent behavior between Linux and Windows on Certbot files</span>
+<span class="c1"># and directories, the filesystem umask method must be used instead, since it implements umask for</span>
+<span class="c1"># Windows.</span>
+<div class="viewcode-block" id="umask"><a class="viewcode-back" href="../../../api/certbot.compat.os.html#certbot.compat.os.umask">[docs]</a><span class="k">def</span> <span class="nf">umask</span><span class="p">(</span><span class="o">*</span><span class="n">unused_args</span><span class="p">,</span> <span class="o">**</span><span class="n">unused_kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+    <span class="sd">&quot;&quot;&quot;Method os.chmod() is forbidden&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Usage of os.umask() is forbidden. &#39;</span>
+                       <span class="s1">&#39;Use certbot.compat.filesystem.umask() instead.&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># Because uid is not a concept on Windows, chown is useless. In fact, it is not even available</span>
+<span class="c1"># on Python for Windows. So to be consistent on both platforms for Certbot, this method is</span>
+<span class="c1"># always forbidden.</span>
+<div class="viewcode-block" id="chown"><a class="viewcode-back" href="../../../api/certbot.compat.os.html#certbot.compat.os.chown">[docs]</a><span class="k">def</span> <span class="nf">chown</span><span class="p">(</span><span class="o">*</span><span class="n">unused_args</span><span class="p">,</span> <span class="o">**</span><span class="n">unused_kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+    <span class="sd">&quot;&quot;&quot;Method os.chown() is forbidden&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Usage of os.chown() is forbidden.&#39;</span>
+                       <span class="s1">&#39;Use certbot.compat.filesystem.copy_ownership_and_apply_mode() instead.&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># The os.open function on Windows has the same effect as a call to os.chown concerning the file</span>
+<span class="c1"># modes: these modes lack the correct control over the permissions given to the file. Instead,</span>
+<span class="c1"># filesystem.open invokes the Windows native API `CreateFile` to ensure that permissions are</span>
+<span class="c1"># atomically set in case of file creation, or invokes filesystem.chmod to properly set the</span>
+<span class="c1"># permissions for the other cases.</span>
+<div class="viewcode-block" id="open"><a class="viewcode-back" href="../../../api/certbot.compat.os.html#certbot.compat.os.open">[docs]</a><span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="o">*</span><span class="n">unused_args</span><span class="p">,</span> <span class="o">**</span><span class="n">unused_kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+    <span class="sd">&quot;&quot;&quot;Method os.open() is forbidden&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Usage of os.open() is forbidden. &#39;</span>
+                       <span class="s1">&#39;Use certbot.compat.filesystem.open() instead.&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># Very similarly to os.open, os.mkdir has the same effects on Windows and creates an unsecured</span>
+<span class="c1"># folder. So a similar mitigation to security.chmod is provided on this platform.</span>
+<div class="viewcode-block" id="mkdir"><a class="viewcode-back" href="../../../api/certbot.compat.os.html#certbot.compat.os.mkdir">[docs]</a><span class="k">def</span> <span class="nf">mkdir</span><span class="p">(</span><span class="o">*</span><span class="n">unused_args</span><span class="p">,</span> <span class="o">**</span><span class="n">unused_kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+    <span class="sd">&quot;&quot;&quot;Method os.mkdir() is forbidden&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Usage of os.mkdir() is forbidden. &#39;</span>
+                       <span class="s1">&#39;Use certbot.compat.filesystem.mkdir() instead.&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># As said above, os.makedirs would call the original os.mkdir function recursively on Windows,</span>
+<span class="c1"># creating the same flaws for every actual folder created. This method is modified to ensure</span>
+<span class="c1"># that our modified os.mkdir is called on Windows, by monkey patching temporarily the mkdir method</span>
+<span class="c1"># on the original os module, executing the modified logic to correctly protect newly created</span>
+<span class="c1"># folders, then restoring original mkdir method in the os module.</span>
+<div class="viewcode-block" id="makedirs"><a class="viewcode-back" href="../../../api/certbot.compat.os.html#certbot.compat.os.makedirs">[docs]</a><span class="k">def</span> <span class="nf">makedirs</span><span class="p">(</span><span class="o">*</span><span class="n">unused_args</span><span class="p">,</span> <span class="o">**</span><span class="n">unused_kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+    <span class="sd">&quot;&quot;&quot;Method os.makedirs() is forbidden&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Usage of os.makedirs() is forbidden. &#39;</span>
+                       <span class="s1">&#39;Use certbot.compat.filesystem.makedirs() instead.&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># Because of the blocking strategy on file handlers on Windows, rename does not behave as expected</span>
+<span class="c1"># with POSIX systems: an exception will be raised if dst already exists.</span>
+<div class="viewcode-block" id="rename"><a class="viewcode-back" href="../../../api/certbot.compat.os.html#certbot.compat.os.rename">[docs]</a><span class="k">def</span> <span class="nf">rename</span><span class="p">(</span><span class="o">*</span><span class="n">unused_args</span><span class="p">,</span> <span class="o">**</span><span class="n">unused_kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+    <span class="sd">&quot;&quot;&quot;Method os.rename() is forbidden&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Usage of os.rename() is forbidden. &#39;</span>
+                       <span class="s1">&#39;Use certbot.compat.filesystem.replace() instead.&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># Behavior of os.replace is consistent between Windows and Linux. However, it is not supported on</span>
+<span class="c1"># Python 2.x. So, as for os.rename, we forbid it in favor of filesystem.replace.</span>
+<div class="viewcode-block" id="replace"><a class="viewcode-back" href="../../../api/certbot.compat.os.html#certbot.compat.os.replace">[docs]</a><span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="o">*</span><span class="n">unused_args</span><span class="p">,</span> <span class="o">**</span><span class="n">unused_kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+    <span class="sd">&quot;&quot;&quot;Method os.replace() is forbidden&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Usage of os.replace() is forbidden. &#39;</span>
+                       <span class="s1">&#39;Use certbot.compat.filesystem.replace() instead.&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># Results given by os.access are inconsistent or partial on Windows, because this platform is not</span>
+<span class="c1"># following the POSIX approach.</span>
+<div class="viewcode-block" id="access"><a class="viewcode-back" href="../../../api/certbot.compat.os.html#certbot.compat.os.access">[docs]</a><span class="k">def</span> <span class="nf">access</span><span class="p">(</span><span class="o">*</span><span class="n">unused_args</span><span class="p">,</span> <span class="o">**</span><span class="n">unused_kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+    <span class="sd">&quot;&quot;&quot;Method os.access() is forbidden&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Usage of os.access() is forbidden. &#39;</span>
+                       <span class="s1">&#39;Use certbot.compat.filesystem.check_mode() or &#39;</span>
+                       <span class="s1">&#39;certbot.compat.filesystem.is_executable() instead.&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># On Windows os.stat call result is inconsistent, with a lot of flags that are not set or</span>
+<span class="c1"># meaningless. We need to use specialized functions from the certbot.compat.filesystem module.</span>
+<div class="viewcode-block" id="stat"><a class="viewcode-back" href="../../../api/certbot.compat.os.html#certbot.compat.os.stat">[docs]</a><span class="k">def</span> <span class="nf">stat</span><span class="p">(</span><span class="o">*</span><span class="n">unused_args</span><span class="p">,</span> <span class="o">**</span><span class="n">unused_kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+    <span class="sd">&quot;&quot;&quot;Method os.stat() is forbidden&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Usage of os.stat() is forbidden. &#39;</span>
+                       <span class="s1">&#39;Use certbot.compat.filesystem functions instead &#39;</span>
+                       <span class="s1">&#39;(eg. has_min_permissions, has_same_ownership).&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># Method os.fstat has the same problem than os.stat, since it is the same function,</span>
+<span class="c1"># but accepting a file descriptor instead of a path.</span>
+<div class="viewcode-block" id="fstat"><a class="viewcode-back" href="../../../api/certbot.compat.os.html#certbot.compat.os.fstat">[docs]</a><span class="k">def</span> <span class="nf">fstat</span><span class="p">(</span><span class="o">*</span><span class="n">unused_args</span><span class="p">,</span> <span class="o">**</span><span class="n">unused_kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+    <span class="sd">&quot;&quot;&quot;Method os.stat() is forbidden&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Usage of os.fstat() is forbidden. &#39;</span>
+                       <span class="s1">&#39;Use certbot.compat.filesystem functions instead &#39;</span>
+                       <span class="s1">&#39;(eg. has_min_permissions, has_same_ownership).&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1"># Method os.readlink has a significant behavior change with Python 3.8+. Starting</span>
+<span class="c1"># with this version, it will return the resolved path in its &quot;extended-style&quot; form</span>
+<span class="c1"># unconditionally, which allows to use more than 259 characters, and its string</span>
+<span class="c1"># representation is prepended with &quot;\\?\&quot;. Problem is that it does it for any path,</span>
+<span class="c1"># and will make equality comparison fail with paths that will use the simple form.</span>
+<span class="k">def</span> <span class="nf">readlink</span><span class="p">(</span><span class="o">*</span><span class="n">unused_args</span><span class="p">,</span> <span class="o">**</span><span class="n">unused_kwargs</span><span class="p">):</span>  <span class="c1"># type: ignore</span>
+    <span class="sd">&quot;&quot;&quot;Method os.readlink() is forbidden&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Usage of os.readlink() is forbidden. &#39;</span>
+                       <span class="s1">&#39;Use certbot.compat.filesystem.realpath() instead.&#39;</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">Certbot</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../what.html">What is a Certificate?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Get Certbot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compatibility.html">Backwards Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../resources.html">Resources</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

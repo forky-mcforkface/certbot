@@ -5,8 +5,6 @@ Get Certbot
 .. contents:: Table of Contents
    :local:
 
-
-
 .. _system_requirements:
 
 System Requirements
@@ -93,13 +91,27 @@ of the ``/etc/letsencrypt`` directory, see :ref:`where-certs`.
 .. _`install Docker`: https://docs.docker.com/engine/installation/
 .. _certbot.eff.org: https://certbot.eff.org/instructions
 
+
+.. _pip:
+
 Alternative 2: Pip
 ------------------
 
 Installing Certbot through pip is only supported on a best effort basis and
-when using a Python virtual environment. Instructions for installing Certbot through
+when using a virtual environment. Instructions for installing Certbot through
 pip can be found at https://certbot.eff.org/instructions by selecting your
 server software and then choosing "pip" in the "System" dropdown menu.
+
+
+.. _third-party:
+
+Alternative 3: Third Party Distributions
+----------------------------------------
+
+Third party distributions exist for other specific needs. They often are maintained
+by these parties outside of Certbot and tend to rapid fall out of date on LTS-style distributions.
+It could be a good place to call out:
+
 
 .. _certbot-auto:
 
@@ -107,8 +119,6 @@ Certbot-Auto [Deprecated]
 -------------------------
 .. toctree::
    :hidden:
-
-   uninstall
 
 We used to have a shell script named ``certbot-auto`` to help people install
 Certbot on UNIX operating systems, however, this script is no longer supported.

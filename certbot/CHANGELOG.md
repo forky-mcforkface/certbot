@@ -2,7 +2,7 @@
 
 Certbot adheres to [Semantic Versioning](https://semver.org/).
 
-## 1.26.0 - master
+## 1.30.0 - master
 
 ### Added
 
@@ -15,6 +15,94 @@ Certbot adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 *
+
+More details about these changes can be found on our GitHub repo.
+
+## 1.29.0 - 2022-07-05
+
+### Added
+
+* Updated Windows installer to be signed and trusted in Windows 
+
+### Changed
+
+* `--allow-subset-of-names` will now additionally retry in cases where domains are rejected while creating or finalizing orders. This requires subproblem support from the ACME server.
+
+### Fixed
+
+* The `show_account` subcommand now uses the "newAccount" ACME endpoint to fetch the account
+  data, so it doesn't rely on the locally stored account URL. This fixes situations where Certbot
+  would use old ACMEv1 registration info with non-functional account URLs.
+
+* The generated Certificate Signing Requests are now generated as version 1 instead of version 3. This resolves situations in where strict enforcement of PKCS#10 meant that CSRs that were generated as version 3 were rejected.
+
+More details about these changes can be found on our GitHub repo.
+
+## 1.28.0 - 2022-06-07
+
+### Added
+
+* Updated Apache/NGINX TLS configs to document contents are based on ssl-config.mozilla.org
+
+
+### Changed
+
+* A change to order finalization has been made to the `acme` module and Certbot:
+  - An order's `certificate` field will only be processed if the order's `status` is `valid`.
+  - An order's `error` field will only be processed if the order's `status` is `invalid`.
+
+### Fixed
+
+*
+
+More details about these changes can be found on our GitHub repo.
+
+## 1.27.0 - 2022-05-03
+
+### Added
+
+* Added support for RFC8555 subproblems to our acme library.
+
+### Changed
+
+* The PGP key `F2871B4152AE13C49519111F447BF683AA3B26C3` was added as an
+  additional trusted key to sign our PyPI packages
+* When `certonly` is run with an installer specified (e.g.  `--nginx`),
+  `certonly` will now also run `restart` for that installer
+
+### Fixed
+
+*
+
+More details about these changes can be found on our GitHub repo.
+
+## 1.26.0 - 2022-04-05
+
+### Added
+
+* Added `--new-key`. When renewing or replacing a certificate that has `--reuse-key`
+  set, it will force a new private key to be generated, one time.
+
+  As before, `--reuse-key` and `--no-reuse-key` can be used to enable and disable key
+  reuse.
+
+### Changed
+
+* The default propagation timeout for the OVH DNS plugin (`--dns-ovh-propagation-seconds`)
+  has been increased from 30 seconds to 120 seconds, based on user feedback.
+
+### Fixed
+
+* Certbot for Windows has been upgraded to use Python 3.9.11, in response to
+  https://www.openssl.org/news/secadv/20220315.txt.
+* Previously, when Certbot was in the process of registering a new ACME account
+  and the ACME server did not present any Terms of Service, the user was asked to
+  agree with a non-existent Terms of Service ("None"). This bug is now fixed, so
+  that if an ACME server does not provide any Terms of Service to agree with, the
+  user is not asked to agree to a non-existent Terms of Service any longer.
+* If account registration fails, Certbot did not relay the error from the ACME server
+  back to the user. This is now fixed: the error message from the ACME server is now
+  presented to the user when account registration fails.
 
 More details about these changes can be found on our GitHub repo.
 

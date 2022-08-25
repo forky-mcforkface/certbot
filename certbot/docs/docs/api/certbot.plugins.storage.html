@@ -1,0 +1,172 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>certbot.plugins.storage module &#8212; Certbot 1.26.0.dev0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="certbot.plugins.util module" href="certbot.plugins.util.html" />
+    <link rel="prev" title="certbot.plugins.enhancements module" href="certbot.plugins.enhancements.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-certbot.plugins.storage">
+<span id="certbot-plugins-storage-module"></span><h1>certbot.plugins.storage module<a class="headerlink" href="#module-certbot.plugins.storage" title="Permalink to this headline">¶</a></h1>
+<p>Plugin storage class.</p>
+<dl class="class">
+<dt id="certbot.plugins.storage.PluginStorage">
+<em class="property">class </em><code class="descclassname">certbot.plugins.storage.</code><code class="descname">PluginStorage</code><span class="sig-paren">(</span><em>config: certbot.configuration.NamespaceConfig</em>, <em>classkey: str</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/plugins/storage.html#PluginStorage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.plugins.storage.PluginStorage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class implementing storage functionality for plugins</p>
+<dl class="method">
+<dt id="certbot.plugins.storage.PluginStorage.save">
+<code class="descname">save</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/certbot/plugins/storage.html#PluginStorage.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.plugins.storage.PluginStorage.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves PluginStorage content to disk</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="certbot.errors.html#certbot.errors.PluginStorageError" title="certbot.errors.PluginStorageError"><strong>errors.PluginStorageError</strong></a> – when unable to serialize the data
+or write it to the filesystem</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="certbot.plugins.storage.PluginStorage.put">
+<code class="descname">put</code><span class="sig-paren">(</span><em>key: str</em>, <em>value: Any</em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/certbot/plugins/storage.html#PluginStorage.put"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.plugins.storage.PluginStorage.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>Put configuration value to PluginStorage</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Key to store the value to</li>
+<li><strong>value</strong> – Data to store</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="certbot.plugins.storage.PluginStorage.fetch">
+<code class="descname">fetch</code><span class="sig-paren">(</span><em>key: str</em><span class="sig-paren">)</span> &#x2192; Any<a class="reference internal" href="../_modules/certbot/plugins/storage.html#PluginStorage.fetch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.plugins.storage.PluginStorage.fetch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get configuration value from PluginStorage</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – Key to get value from the storage</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#KeyError" title="(in Python v3.10)"><strong>KeyError</strong></a> – If the key doesn’t exist in the storage</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Certbot</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../what.html">What is a Certificate?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Get Certbot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../compatibility.html">Backwards Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources.html">Resources</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../api.html">API Documentation</a><ul>
+  <li><a href="certbot.html">certbot package</a><ul>
+  <li><a href="certbot.plugins.html">certbot.plugins package</a><ul>
+      <li>Previous: <a href="certbot.plugins.enhancements.html" title="previous chapter">certbot.plugins.enhancements module</a></li>
+      <li>Next: <a href="certbot.plugins.util.html" title="next chapter">certbot.plugins.util module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="../_sources/api/certbot.plugins.storage.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

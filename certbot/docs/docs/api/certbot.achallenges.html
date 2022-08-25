@@ -1,0 +1,203 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>certbot.achallenges module &#8212; Certbot 1.26.0.dev0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="certbot.crypto_util module" href="certbot.crypto_util.html" />
+    <link rel="prev" title="certbot.tests.util module" href="certbot.tests.util.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-certbot.achallenges">
+<span id="certbot-achallenges-module"></span><h1>certbot.achallenges module<a class="headerlink" href="#module-certbot.achallenges" title="Permalink to this headline">¶</a></h1>
+<p>Client annotated ACME challenges.</p>
+<p>Please use names such as <code class="docutils literal notranslate"><span class="pre">achall</span></code> to distinguish from variables “of type”
+<a class="reference external" href="https://acme-python.readthedocs.io/en/latest/api/challenges.html#acme.challenges.Challenge" title="(in acme-python v0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">acme.challenges.Challenge</span></code></a> (denoted by <code class="docutils literal notranslate"><span class="pre">chall</span></code>)
+and <code class="xref py py-class docutils literal notranslate"><span class="pre">ChallengeBody</span></code> (denoted by <code class="docutils literal notranslate"><span class="pre">challb</span></code>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">acme</span> <span class="kn">import</span> <span class="n">challenges</span>
+<span class="kn">from</span> <span class="nn">acme</span> <span class="kn">import</span> <span class="n">messages</span>
+<span class="kn">from</span> <span class="nn">certbot</span> <span class="kn">import</span> <span class="n">achallenges</span>
+
+<span class="n">chall</span> <span class="o">=</span> <span class="n">challenges</span><span class="o">.</span><span class="n">DNS</span><span class="p">(</span><span class="n">token</span><span class="o">=</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+<span class="n">challb</span> <span class="o">=</span> <span class="n">messages</span><span class="o">.</span><span class="n">ChallengeBody</span><span class="p">(</span><span class="n">chall</span><span class="o">=</span><span class="n">chall</span><span class="p">)</span>
+<span class="n">achall</span> <span class="o">=</span> <span class="n">achallenges</span><span class="o">.</span><span class="n">DNS</span><span class="p">(</span><span class="n">chall</span><span class="o">=</span><span class="n">challb</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;example.com&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note, that all annotated challenges act as a proxy objects:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">achall</span><span class="o">.</span><span class="n">token</span> <span class="o">==</span> <span class="n">challb</span><span class="o">.</span><span class="n">token</span>
+</pre></div>
+</div>
+<dl class="class">
+<dt id="certbot.achallenges.AnnotatedChallenge">
+<em class="property">class </em><code class="descclassname">certbot.achallenges.</code><code class="descname">AnnotatedChallenge</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/achallenges.html#AnnotatedChallenge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.achallenges.AnnotatedChallenge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">josepy.util.ImmutableMap</span></code></p>
+<p>Client annotated challenge.</p>
+<p>Wraps around server provided challenge and annotates with data
+useful for the client.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><strong>challb</strong> – Wrapped <code class="xref py py-obj docutils literal notranslate"><span class="pre">ChallengeBody</span></code>.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="certbot.achallenges.AnnotatedChallenge.challb">
+<code class="descname">challb</code><a class="headerlink" href="#certbot.achallenges.AnnotatedChallenge.challb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="certbot.achallenges.KeyAuthorizationAnnotatedChallenge">
+<em class="property">class </em><code class="descclassname">certbot.achallenges.</code><code class="descname">KeyAuthorizationAnnotatedChallenge</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/achallenges.html#KeyAuthorizationAnnotatedChallenge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.achallenges.KeyAuthorizationAnnotatedChallenge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.achallenges.AnnotatedChallenge" title="certbot.achallenges.AnnotatedChallenge"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.achallenges.AnnotatedChallenge</span></code></a></p>
+<p>Client annotated <code class="xref py py-obj docutils literal notranslate"><span class="pre">KeyAuthorizationChallenge</span></code> challenge.</p>
+<dl class="method">
+<dt id="certbot.achallenges.KeyAuthorizationAnnotatedChallenge.response_and_validation">
+<code class="descname">response_and_validation</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; Any<a class="reference internal" href="../_modules/certbot/achallenges.html#KeyAuthorizationAnnotatedChallenge.response_and_validation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.achallenges.KeyAuthorizationAnnotatedChallenge.response_and_validation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate response and validation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="certbot.achallenges.KeyAuthorizationAnnotatedChallenge.account_key">
+<code class="descname">account_key</code><a class="headerlink" href="#certbot.achallenges.KeyAuthorizationAnnotatedChallenge.account_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="certbot.achallenges.KeyAuthorizationAnnotatedChallenge.challb">
+<code class="descname">challb</code><a class="headerlink" href="#certbot.achallenges.KeyAuthorizationAnnotatedChallenge.challb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="certbot.achallenges.KeyAuthorizationAnnotatedChallenge.domain">
+<code class="descname">domain</code><a class="headerlink" href="#certbot.achallenges.KeyAuthorizationAnnotatedChallenge.domain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="certbot.achallenges.DNS">
+<em class="property">class </em><code class="descclassname">certbot.achallenges.</code><code class="descname">DNS</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/certbot/achallenges.html#DNS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#certbot.achallenges.DNS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#certbot.achallenges.AnnotatedChallenge" title="certbot.achallenges.AnnotatedChallenge"><code class="xref py py-class docutils literal notranslate"><span class="pre">certbot.achallenges.AnnotatedChallenge</span></code></a></p>
+<p>Client annotated “dns” ACME challenge.</p>
+<dl class="attribute">
+<dt id="certbot.achallenges.DNS.acme_type">
+<code class="descname">acme_type</code><a class="headerlink" href="#certbot.achallenges.DNS.acme_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://acme-python.readthedocs.io/en/latest/api/challenges.html#acme.challenges.DNS" title="(in acme-python v0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">acme.challenges.DNS</span></code></a></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="certbot.achallenges.DNS.challb">
+<code class="descname">challb</code><a class="headerlink" href="#certbot.achallenges.DNS.challb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="certbot.achallenges.DNS.domain">
+<code class="descname">domain</code><a class="headerlink" href="#certbot.achallenges.DNS.domain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Certbot</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../what.html">What is a Certificate?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Get Certbot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../packaging.html">Packaging Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../compatibility.html">Backwards Compatibility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../resources.html">Resources</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../api.html">API Documentation</a><ul>
+  <li><a href="certbot.html">certbot package</a><ul>
+      <li>Previous: <a href="certbot.tests.util.html" title="previous chapter">certbot.tests.util module</a></li>
+      <li>Next: <a href="certbot.crypto_util.html" title="next chapter">certbot.crypto_util module</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.8</a>
+      
+      |
+      <a href="../_sources/api/certbot.achallenges.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
